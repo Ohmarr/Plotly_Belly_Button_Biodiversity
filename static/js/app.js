@@ -1,12 +1,13 @@
-function init() { 			// Visit '/names' ⟶ default route (app.py)
+var currentMetaData, currentSampleData; // global variables; 
 
+function init() { 			// Visit '/names' ⟶ default route (app.py)
 	var selector = d3.select("#selDataset"); // dropdown selector
 	var default_url = '/names';
 
 	d3.json(default_url).then( // Parameter=JSON list of names
-		(sampleNames) => {
+		sampleNames => {
 			sampleNames.forEach(
-				(sample) => {
+				sample => {
 					selector
 						.append("option") // append options for dropdown selection
 						.text(sample)     // add text
@@ -15,47 +16,50 @@ function init() { 			// Visit '/names' ⟶ default route (app.py)
 			const firstSample = sampleNames[0]; // 1st Sample
 			getSampleData(firstSample)
 			console.log(firstSample)
-		});	   // Return ⟶ Function Calls buildCharts(firstSample) & buildMetadata(firstSample);
+		});	   // Return ⟶ Function Calls buildCharts(firstSample) & buildMetaData(firstSample);
 
-};			// Operations ⟶ Adds sample options to # & Returns 1 ⟶ Calls buildCharts(1) & buildMetadata(1);
+};					// Operations ⟶ Adds sample options to # & Returns 1 ⟶ Calls buildCharts(1) & buildMetaData(1);
 
-function buildMetadata(newSample) { 	// display key/value pair from @ metadata route  
-	// @TODO: Complete the following function that builds the metadata panel
-	var selector = d3.select("#metadata_table");
-	var newSample = sample;
-	newSample.forEach((sample) => {
-		var tableRow = selector.append("tr");
-		Object.entries(stuff)
-			.forEach(([key, value]) => {
-				var cell = selector.append("td");
-				cell.text(value);
-			});
-	});
+function getSampleData(newSample) {	//  Dropdown Change ⟶ New Sample Selected
+	d3.json(`/metadata/${newSample}`)
+		.then(
+			newMetaData => {
+				currentMetaData = newMetaData;
+				buildMetaData(newMetaData)
+				console.log(`calling buildMetaData(${newMetaData})`)
+			})
 
+	d3.json(`/samples/${newSample}`)
+		.then(
+			newSampleData => {
+				currentSampleData = newSampleData;
+				buildCharts(newSampleData)
+				console.log(`calling buildCharts(${newSampleData})`)
+			})
+}; 					// Return ⟶ function calls ⟶ buildCharts(newSample) & buildMetaData(newSample);
 
-
-
-
-	// Use `d3.json` to fetch the metadata for a sample
-	// Use d3 to select the panel with id of `#sample-metadata`
-	var selector = d3.select("#sample-metadata");
-	// Use `.html("") to clear any existing metadata
-
-	// Use `Object.entries` to add each key and value pair to the panel
-	// Hint: Inside the loop, you will need to use d3 to append new
-	// tags for each key-value in the metadata.
-
-	// BONUS: Build the Gauge Chart
-	// buildGauge(data.WFREQ);
-	var default_url = `/metadata/${sample}`;
-
-};
+function buildMetaData(newSample) { 	// access key/value pairs from @ metadata route & construct panel  
+	
+	var metaPanel = d3.selectAll('.panel-body')
+	metaPanel.selectAll('p').html('')  // clear metaPanel to prepare for new data; 
+	metaPanel.append('p')
+		.html(`
+			Sample: ${newSample.sample},\n
+			Age: ${newSample.AGE},\n
+			Belly Button Type: ${newSample.BBTYPE},\n
+			Ethnicity: ${newSample.ETHNICITY},\n
+			Gender: ${newSample.GENDER},\n
+			Location: ${newSample.LOCATION},\n
+			Washing Frequency: ${newSample.WFREQ}.\n`
+			)
+	// Object.entries(newSample).forEach(([key, value])=>console.log(key + ':' + value));
+};					// Return ⟶ Metadata Panel
 
 function buildCharts(sample) { 		// build bubble chart & pie chart for sample data
 
 	var trace_pie = {
-		values: sample.sample_values,
-		labels: sample.otu_ids,
+		values: sample.sample_values,	// performed in pd df//.slice(0,10),
+		labels: sample.otu_ids,         // performed in pd df//.slice(0,10),
 		type: 'pie'
 	};
 	var data_pie = [trace_pie]; //data must be an array; so converted here; 
@@ -65,30 +69,28 @@ function buildCharts(sample) { 		// build bubble chart & pie chart for sample da
 		width: 500
 	};
 	Plotly.newPlot('pie', data_pie, layout_pie); // pie chart
-};
-// @TODO: Use `d3.json` to fetch the sample data for the plots
 
-// @TODO: Build a Bubble Chart using the sample data
-
-// @TODO: Build a Pie Chart
-// HINT: You will need to use slice() to grab the top 10 sample_values,
-// otu_ids, and labels (10 each).
-
-
-function getSampleData(newSample) {	//  Dropdown Change ⟶ New Sample Selected
-	d3.json(`/metadata/${newSample}`)
-		.then(
-			(newMetadata) => {
-				buildMetadata(newMetadata)
-				console.log(`calling buildMetadata() on ${newMetadata}`)
-			})
-
-	d3.json(`/samples/${newSample}`)
-		.then(
-			(new_sampledata) => {
-				buildCharts(new_sampledata)
-				console.log(`calling buildCharts(${new_sampledata})`)
-			})
-}; 	// Return ⟶ function calls ⟶ buildCharts(newSample) & buildMetadata(newSample);
+	var trace1 = {
+		x: sample.otu_ids, // Operational Taxonomic Units
+		y: sample.sample_values,
+		text: sample.otu_labels,
+		mode: 'markers',
+		marker: {
+		  size: sample.sample_values,
+		  color: sample.otu_ids
+		}
+	      };
+	      
+	var data = [trace1];
+	      
+	var layout = {
+		title: 'Marker Size',
+		showlegend: false,
+		height: 500,
+		width: 1000
+	      };
+	      
+	Plotly.newPlot('bubble', data, layout);
+};					// // Return ⟶ append each chart to html
 
 init();					// Return ⟶ Function Call init()
