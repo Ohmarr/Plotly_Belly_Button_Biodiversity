@@ -44,13 +44,13 @@ function buildMetaData(newSample) { 	// access key/value pairs from @ metadata r
 	metaPanel.selectAll('p').html('')  // clear metaPanel to prepare for new data; 
 	metaPanel.append('p')
 		.html(`
-			Sample: ${newSample.sample},\n
-			Age: ${newSample.AGE},\n
-			Belly Button Type: ${newSample.BBTYPE},\n
-			Ethnicity: ${newSample.ETHNICITY},\n
-			Gender: ${newSample.GENDER},\n
-			Location: ${newSample.LOCATION},\n
-			Washing Frequency: ${newSample.WFREQ}.\n`
+			<strong>Sample:</strong> ${newSample.sample},<br>
+			<strong>Age:</strong> ${newSample.AGE},<br>
+			<strong>Belly Button Type:</strong> ${newSample.BBTYPE},<br>
+			<strong>Ethnicity:</strong> ${newSample.ETHNICITY},<br>
+			<strong>Gender:</strong> ${newSample.GENDER},<br>
+			<strong>Location:</strong> ${newSample.LOCATION},<br>
+			<strong>Washing Frequency:</strong> ${newSample.WFREQ}.<br>`
 			)
 	// Object.entries(newSample).forEach(([key, value])=>console.log(key + ':' + value));
 };					// Return ⟶ Metadata Panel
@@ -65,8 +65,6 @@ function buildCharts(sample) { 		// build bubble chart & pie chart for sample da
 	var data_pie = [trace_pie]; //data must be an array; so converted here; 
 	var layout_pie = {
 		title: "'Pie' Chart - Samples",
-		height: 400,
-		width: 500
 	};
 	Plotly.newPlot('pie', data_pie, layout_pie); // pie chart
 
@@ -86,8 +84,7 @@ function buildCharts(sample) { 		// build bubble chart & pie chart for sample da
 	var layout = {
 		title: 'Marker Size',
 		showlegend: false,
-		height: 500,
-		width: 1000
+
 	      };
 	      
 	Plotly.newPlot('bubble', data, layout);
